@@ -24,6 +24,8 @@ public class ApiController {
     private final static String ERROR_INDEXING_NOT_STARTED = "Индексация не запущена";
     private final static String ERROR_NOT_AVAIBLE_PAGE = "Данная страница находится за пределами сайтов, " +
             "указанных в конфигурационном файле";
+    private final static String ERROR_EMPTY_QUERY = "Задан пустой поисковый запрос";
+    private final static String ERROR_NOT_FOUND = "По данному запросу ни чего не найдено.";
 
     private final StatisticsService statisticsService;
     private final IndexingService indexingService;
@@ -44,10 +46,6 @@ public class ApiController {
                     HttpStatus.BAD_REQUEST);
         }
     }
-//    @GetMapping("/startIndexing")
-//    public ResponseEntity<IndexingResponse> startIndexing() {
-//        return ResponseEntity.ok(indexingService.startIndexing());
-//    }
 
     @GetMapping("/stopIndexing")
     public ResponseEntity<Object> stopIndexing() {
@@ -58,10 +56,6 @@ public class ApiController {
                     HttpStatus.BAD_REQUEST);
         }
     }
-//    @GetMapping("/stopIndexing")
-//    public ResponseEntity<IndexingResponse> stopIndexing() {
-//        return ResponseEntity.ok(indexingService.stopIndexing());
-//    }
 
     @PostMapping("/indexPage")
     public ResponseEntity<Object> indexPage (@RequestParam(name = "url") String url) {
@@ -77,11 +71,6 @@ public class ApiController {
         }
     }
 
-//    @PostMapping("/indexPage")
-//    public ResponseEntity<IndexingResponse> indexPage (@RequestParam(name = "url") String url) {
-//        return ResponseEntity.ok(indexingService.startPageIndexing(url));
-//    }
-
     @GetMapping("/search")
     public ResponseEntity<Object> search(@RequestParam(name = "query", required = false, defaultValue = "")
                                              String request,
@@ -92,13 +81,13 @@ public class ApiController {
                                          @RequestParam(name = "limit", required = false, defaultValue = "20")
                                              int limit) {
         if (request.isEmpty()) {
-            return new ResponseEntity<>(new IndexingResponse(false, "Задан пустой поисковый запрос"),
+            return new ResponseEntity<>(new BadRequest(false, ERROR_EMPTY_QUERY),
                     HttpStatus.BAD_REQUEST);
         } else {
             List<SearchData> searchData;
             if (!site.isEmpty()) {
                 if (siteRepository.findByUrl(site) == null) {
-                    return new ResponseEntity<>(new IndexingResponse(false, "Указанная страница не найдена"),
+                    return new ResponseEntity<>(new BadRequest(false, ERROR_NOT_AVAIBLE_PAGE),
                             HttpStatus.BAD_REQUEST);
                 } else {
                     searchData = searchService.onePageSearch(request, site, offset, limit);
@@ -107,7 +96,7 @@ public class ApiController {
                 searchData = searchService.searchThroughAllSites(request, offset, limit);
             }
             if (searchData == null) {
-                return new ResponseEntity<>(new IndexingResponse(false, "По данному запросу ни чего не найдено."),
+                return new ResponseEntity<>(new BadRequest(false, ERROR_NOT_FOUND),
                         HttpStatus.BAD_REQUEST);
             }
             return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchData), HttpStatus.OK);
