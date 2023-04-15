@@ -45,7 +45,7 @@ ____
 
 Скачать проект можно используя git bash:
 
-    git clone https://github.com/NikolaiMagritte/***.git
+    git clone https://github.com/NikolaiMagritte/search-engine.git
 После скачивания проекта, необходимо создать локальную базу данных, и изменить параметры подключения к базе данных в конфигурационном файле <u>application.yaml</u>.
 
 ````
