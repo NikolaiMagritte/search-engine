@@ -1,4 +1,4 @@
-package searchengine.services.indexing;
+package searchengine.utils;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -6,14 +6,13 @@ import searchengine.dto.indexing.DtoLemma;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.PageRepository;
-import searchengine.services.utils.LemmaFinderUtil;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 @RequiredArgsConstructor
-public class GetDtoLemmas {
+public class GetDtoLemmasUtil {
     private final PageRepository pageRepository;
     private final LemmaFinderUtil lemmaFinder;
     private CopyOnWriteArrayList<DtoLemma> dtoLemmas;

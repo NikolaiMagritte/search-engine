@@ -1,4 +1,4 @@
-package searchengine.services.indexing;
+package searchengine.utils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,17 +12,15 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.utils.LemmaFinderUtil;
-import searchengine.services.utils.UrlUtil;
+
 
 import java.util.*;
 
 @RequiredArgsConstructor
 @Slf4j
 @Component
-public class IndexingOnePage {
-    private final static String LOG_DELETE_PAGE = "-> Удаляем данные в БД для страницы: ";
-    private final static String LOG_ADD_LEMMAS_AND_INDEX = "-> В БД добавлены леммы и index страницы: ";
+public class IndexingOnePageUtil {
+
 
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
@@ -51,7 +49,7 @@ public class IndexingOnePage {
         }
 
         if (pageRepository.findByPath(path) != null) {
-            log.info(LOG_DELETE_PAGE + page);
+            log.info(ErrorsAndLogsUtil.LOG_DELETE_PAGE + page);
             PageEntity pageEntity = pageRepository.findByPath(path);
 
             pageRepository.deleteById(pageEntity.getId());
@@ -78,7 +76,7 @@ public class IndexingOnePage {
         pageRepository.save(pageEntity);
         addLemas(pageEntity, siteEntity);
 
-        log.info(LOG_ADD_LEMMAS_AND_INDEX + page);
+        log.info(ErrorsAndLogsUtil.LOG_ADD_LEMMAS_AND_INDEX + page);
     }
 
 

@@ -12,7 +12,7 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.utils.UrlUtil;
+import searchengine.utils.*;
 
 import java.util.Date;
 import java.util.List;
@@ -25,21 +25,15 @@ import java.util.concurrent.Executors;
 @RequiredArgsConstructor
 public class IndexingServiceImpl implements IndexingService {
     private static final int CORE_COUNT = Runtime.getRuntime().availableProcessors();
-    private final static String LOG_STOP_INDEXING = "-> Запускаем остановку индексации";
-    private final static String LOG_START_INDEXING_PAGE = "-> Запущена индексация страницы: ";
-    private final static String LOG_DONE_INDEXING_PAGE = "-> Завершена индексация страницы: ";
-    private final static String ERROR_NOT_AVAIBLE_PAGE = "Данная страница находится за пределами сайтов, " +
-            "указанных в конфигурационном файле";
-
     private ExecutorService executorService;
 
-    private final IndexingOnePage indexingOnePage;
+    private final IndexingOnePageUtil indexingOnePage;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
-    private final GetDtoLemmas getDtoLemmas;
-    private final GetDtoIndex getDtoIndex;
+    private final GetDtoLemmasUtil getDtoLemmas;
+    private final GetDtoIndexUtil getDtoIndex;
     private final SitesList sitesList;
     private final UrlUtil urlUtil;
 
@@ -50,7 +44,7 @@ public class IndexingServiceImpl implements IndexingService {
         } else {
             executorService = Executors.newFixedThreadPool(CORE_COUNT);
             for (Site site : sitesList.getSites()) {
-                executorService.submit(new IndexingAllPages(siteRepository, pageRepository,
+                executorService.submit(new IndexingAllPagesUtil(siteRepository, pageRepository,
                         lemmaRepository, indexRepository, getDtoLemmas, getDtoIndex, site, urlUtil));
             }
             executorService.shutdown();
@@ -61,12 +55,12 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public boolean startPageIndexing(String page) {
         if (isPageAvaible(page) && !page.isEmpty()) {
-            log.info(LOG_START_INDEXING_PAGE + page);
+            log.info(ErrorsAndLogsUtil.LOG_START_INDEXING_PAGE + page);
             indexingOnePage.start(page);
-            log.info(LOG_DONE_INDEXING_PAGE + page);
+            log.info(ErrorsAndLogsUtil.LOG_DONE_INDEXING_PAGE + page);
             return true;
         } else {
-            log.info(ERROR_NOT_AVAIBLE_PAGE + page);
+            log.info(ErrorsAndLogsUtil.LOG_NOT_AVAIBLE_PAGE + page);
             return false;
         }
     }
@@ -74,7 +68,7 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public boolean stopIndexing() {
         if (isIndexing()) {
-            log.info(LOG_STOP_INDEXING);
+            log.info(ErrorsAndLogsUtil.LOG_STOP_INDEXING);
             executorService.shutdownNow();
             return true;
         } else {

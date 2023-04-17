@@ -2,8 +2,12 @@ package searchengine.services.search;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import searchengine.dto.indexing.BadRequest;
 import searchengine.dto.search.SearchData;
+import searchengine.dto.search.SearchResponse;
 import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
 import searchengine.model.PageEntity;
@@ -12,8 +16,9 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.utils.LemmaFinderUtil;
-import searchengine.services.utils.UrlUtil;
+import searchengine.utils.LemmaFinderUtil;
+import searchengine.utils.UrlUtil;
+import searchengine.utils.ErrorsAndLogsUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,10 +27,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SearchServiceImpl implements SearchService {
-    private static final String LOG_START_ALLSITES_SEARCH = "-> Запускаем поиск по сайтам для запроса: ";
-    private static final String LOG_FINISH_ALLSITES_SEARCH = "-> Поиск по сайтам завершен.";
-    private static final String LOG_START_ONESITE_SEARCH = "-> Запускаем поиск по сайту для запроса: ";
-    private static final String LOG_FINISH_ONESITES_SEARCH = "-> Поиск по сайту завершен.";
 
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
@@ -35,8 +36,33 @@ public class SearchServiceImpl implements SearchService {
     private final UrlUtil urlUtil;
 
     @Override
+    public ResponseEntity<Object> search(String query, String url, int offset, int limit) {
+        if (query.isEmpty()) {
+            return new ResponseEntity<>(new BadRequest(false, ErrorsAndLogsUtil.ERROR_EMPTY_QUERY),
+                    HttpStatus.BAD_REQUEST);
+        } else {
+            List<SearchData> searchData;
+            if (!url.isEmpty()) {
+                if (siteRepository.findByUrl(url) == null) {
+                    return new ResponseEntity<>(new BadRequest(false, ErrorsAndLogsUtil.ERROR_NOT_AVAIBLE_PAGE),
+                            HttpStatus.BAD_REQUEST);
+                } else {
+                    searchData = onePageSearch(query, url, offset, limit);
+                }
+            } else {
+                searchData = searchThroughAllSites(query, offset, limit);
+            }
+            if (searchData == null) {
+                return new ResponseEntity<>(new BadRequest(false, ErrorsAndLogsUtil.ERROR_NOT_FOUND),
+                        HttpStatus.BAD_REQUEST);
+            }
+            return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchData), HttpStatus.OK);
+        }
+    }
+
+    @Override
     public List<SearchData> searchThroughAllSites(String query, int offset, int limit) {
-        log.info(LOG_START_ALLSITES_SEARCH + query);
+        log.info(ErrorsAndLogsUtil.LOG_START_ALLSITES_SEARCH + query);
         List<SiteEntity> sites = siteRepository.findAll();
         List<SearchData> searchDataList = new ArrayList<>();
         List<LemmaEntity> sortedLemmasPerSite = new ArrayList<>();
@@ -58,17 +84,17 @@ public class SearchServiceImpl implements SearchService {
                 }
             }
         }
-        log.info(LOG_FINISH_ALLSITES_SEARCH);
+        log.info(ErrorsAndLogsUtil.LOG_FINISH_ALLSITES_SEARCH);
         return searchData;
     }
 
     @Override
     public List<SearchData> onePageSearch(String query, String url, int offset, int limit) {
-        log.info(LOG_START_ONESITE_SEARCH + query);
+        log.info(ErrorsAndLogsUtil.LOG_START_ONESITE_SEARCH + query);
         SiteEntity siteEntity = siteRepository.findByUrl(url);
         List<String> lemmasFromQuery = getQueryIntoLemma(query);
         List<LemmaEntity> lemmasFromSite = getLemmasFromSite(lemmasFromQuery, siteEntity);
-        log.info(LOG_FINISH_ONESITES_SEARCH);
+        log.info(ErrorsAndLogsUtil.LOG_FINISH_ONESITES_SEARCH);
         return getSearchDataList(lemmasFromSite, lemmasFromQuery, offset, limit);
     }
 
@@ -155,7 +181,6 @@ public class SearchServiceImpl implements SearchService {
         }
         return searchData;
     }
-
 
 
     private String getSnippet(String content, List<String> lemmasFromQuey) {

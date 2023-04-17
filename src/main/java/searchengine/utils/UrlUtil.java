@@ -1,4 +1,4 @@
-package searchengine.services.utils;
+package searchengine.utils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,6 @@ import java.net.URL;
 @Slf4j
 @RequiredArgsConstructor
 public class UrlUtil {
-    private final static String LOG_MALFORMED_EXCEPTION = "! Некорректный URL адрес: ";
 
     private final JsoupConnection jsoupConnection;
 
@@ -23,8 +22,6 @@ public class UrlUtil {
             return Jsoup.connect(url)
                     .userAgent(jsoupConnection.getUserAgent())
                     .referrer(jsoupConnection.getReferrer())
-//                    .timeout(1000)
-//                    .ignoreHttpErrors(true)
                     .get();
         } catch (Exception e) {
             return null;
@@ -36,7 +33,7 @@ public class UrlUtil {
             URL url = new URL(page);
             return url.getPath();
         } catch (MalformedURLException e) {
-            log.error(LOG_MALFORMED_EXCEPTION + page);
+            log.error(ErrorsAndLogsUtil.LOG_MALFORMED_EXCEPTION + page);
             return "";
         }
     }
@@ -46,7 +43,7 @@ public class UrlUtil {
             URL url = new URL(page);
             return url.getHost();
         } catch (MalformedURLException e) {
-            log.error(LOG_MALFORMED_EXCEPTION + page);
+            log.error(ErrorsAndLogsUtil.LOG_MALFORMED_EXCEPTION + page);
             return "";
         }
     }

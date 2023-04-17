@@ -1,8 +1,7 @@
-package searchengine.services.indexing;
+package searchengine.utils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import searchengine.config.Site;
 import searchengine.dto.indexing.DtoIndex;
 import searchengine.dto.indexing.DtoLemma;
@@ -12,32 +11,22 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.utils.UrlUtil;
+import searchengine.services.indexing.IndexingServiceImpl;
 
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
 
 @RequiredArgsConstructor
-@Component
 @Slf4j
-public class IndexingAllPages implements Runnable {
-    private final static String LOG_ADD_SITE = "-> В БД добавлен сайт: ";
-    private final static String LOG_ADD_PAGES = "-> В БД добавлены страницы с сайта: ";
-    private final static String LOG_ADD_LEMMAS = "-> В БД добавлены леммы с сайта: ";
-    private final static String LOG_ADD_INDEX = "-> В БД добавлены index для сайта: ";
-    private final static String LOG_DELETE_DATA = "-> Из БД удаляются старые данные по сайту:  ";
-    private final static String LOG_START_INDEXING = "-> Запущена индексация сайта: ";
-    private final static String LOG_INDEXING_COMPLETED = "-> Индексация завершена: ";
-    private final static String LOG_INDEXING_STOPED = "-> Остановка индексации завершена.";
-
+public class IndexingAllPagesUtil implements Runnable {
 
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
-    private final GetDtoLemmas getDtoLemmas;
-    private final GetDtoIndex getDtoIndex;
+    private final GetDtoLemmasUtil getDtoLemmas;
+    private final GetDtoIndexUtil getDtoIndex;
     private final Site site;
     private final UrlUtil urlUtil;
 
@@ -45,23 +34,23 @@ public class IndexingAllPages implements Runnable {
     public void run() {
         String siteName = site.getName();
         if (siteRepository.findByUrl(site.getUrl()) != null) {
-            log.info(LOG_DELETE_DATA + siteName);
+            log.info(ErrorsAndLogsUtil.LOG_DELETE_DATA + siteName);
             deleteData(site);
         }
-        log.info(LOG_START_INDEXING + siteName);
+        log.info(ErrorsAndLogsUtil.LOG_START_INDEXING + siteName);
         try {
             addSiteToTheRepository();
-            log.info(LOG_ADD_SITE + siteName);
+            log.info(ErrorsAndLogsUtil.LOG_ADD_SITE + siteName);
 
             addPagesToTheRepository();
-            log.info(LOG_ADD_PAGES + siteName);
+            log.info(ErrorsAndLogsUtil.LOG_ADD_PAGES + siteName);
 
             addLemmasToTheRepository();
-            log.info(LOG_ADD_LEMMAS + siteName);
+            log.info(ErrorsAndLogsUtil.LOG_ADD_LEMMAS + siteName);
 
             addIndexToTheRepository();
         } catch (InterruptedException e) {
-            log.info(LOG_INDEXING_STOPED);
+            log.info(ErrorsAndLogsUtil.LOG_INDEXING_STOPED);
 
             List<SiteEntity> sites = siteRepository.findByStatus(SiteStatus.INDEXING);
             for (SiteEntity siteEntity : sites) {
@@ -100,7 +89,7 @@ public class IndexingAllPages implements Runnable {
             SiteEntity siteEntity = siteRepository.findByUrl(siteUrl);
 
             CopyOnWriteArrayList<DtoPage> dtoPages = forkJoinPool
-                    .invoke(new GetDtoPages(linksPool, pages, urlUtil, siteUrl));
+                    .invoke(new GetDtoPagesUtil(linksPool, pages, urlUtil, siteUrl));
             for (DtoPage dtoPage : dtoPages) {
                 String pageUrl = dtoPage.getPath();
                 String path = pageUrl.endsWith("/") ? urlUtil.getPathToPage(pageUrl)
@@ -155,12 +144,12 @@ public class IndexingAllPages implements Runnable {
                 indexStore.add(indexEntity);
             }
             indexRepository.saveAll(indexStore);
-            log.info(LOG_ADD_INDEX + site.getName());
+            log.info(ErrorsAndLogsUtil.LOG_ADD_INDEX + site.getName());
 
             siteEntity.setStatus(SiteStatus.INDEXED);
             siteEntity.setStatusTime(new Date());
             siteRepository.save(siteEntity);
-            log.info(LOG_INDEXING_COMPLETED + siteEntity.getName());
+            log.info(ErrorsAndLogsUtil.LOG_INDEXING_COMPLETED + siteEntity.getName());
         } else {
             throw new InterruptedException();
         }
@@ -168,7 +157,10 @@ public class IndexingAllPages implements Runnable {
 
     private void deleteData(Site site) {
         SiteEntity siteEntity = siteRepository.findByUrl(site.getUrl());
+        siteEntity.setStatus(SiteStatus.INDEXING);
+        siteRepository.save(siteEntity);
         siteRepository.delete(siteEntity);
+        log.info(ErrorsAndLogsUtil.LOG_FINISH_DELETE_DATA + site.getName());
     }
 
 

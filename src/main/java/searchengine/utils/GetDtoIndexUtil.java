@@ -1,4 +1,4 @@
-package searchengine.services.indexing;
+package searchengine.utils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +9,6 @@ import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
-import searchengine.services.utils.LemmaFinderUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +17,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class GetDtoIndex {
+public class GetDtoIndexUtil {
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final LemmaFinderUtil lemmaFinder;

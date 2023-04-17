@@ -1,8 +1,6 @@
-package searchengine.services.utils;
+package searchengine.utils;
 
 import org.springframework.stereotype.Component;
-
-import static java.lang.Thread.sleep;
 
 @Component
 public class ValidationUtil {
