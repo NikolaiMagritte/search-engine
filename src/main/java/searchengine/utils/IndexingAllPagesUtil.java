@@ -13,6 +13,7 @@ import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexing.IndexingServiceImpl;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
@@ -54,7 +55,7 @@ public class IndexingAllPagesUtil implements Runnable {
 
             List<SiteEntity> sites = siteRepository.findByStatus(SiteStatus.INDEXING);
             for (SiteEntity siteEntity : sites) {
-                siteEntity.setStatusTime(new Date());
+                siteEntity.setStatusTime(LocalDateTime.now());
                 siteEntity.setStatus(SiteStatus.FAILED);
                 siteEntity.setLastError("Индексация остановлена пользователем");
                 siteRepository.save(siteEntity);
@@ -66,7 +67,7 @@ public class IndexingAllPagesUtil implements Runnable {
         if (!Thread.interrupted()) {
             SiteEntity siteEntity = new SiteEntity();
             siteEntity.setStatus(SiteStatus.INDEXING);
-            siteEntity.setStatusTime(new Date());
+            siteEntity.setStatusTime(LocalDateTime.now());
             siteEntity.setUrl(site.getUrl());
             siteEntity.setName(site.getName());
             siteRepository.save(siteEntity);
@@ -147,7 +148,7 @@ public class IndexingAllPagesUtil implements Runnable {
             log.info(ErrorsAndLogsUtil.LOG_ADD_INDEX + site.getName());
 
             siteEntity.setStatus(SiteStatus.INDEXED);
-            siteEntity.setStatusTime(new Date());
+            siteEntity.setStatusTime(LocalDateTime.now());
             siteRepository.save(siteEntity);
             log.info(ErrorsAndLogsUtil.LOG_INDEXING_COMPLETED + siteEntity.getName());
         } else {

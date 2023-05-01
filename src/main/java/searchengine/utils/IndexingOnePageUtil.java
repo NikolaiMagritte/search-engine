@@ -14,6 +14,7 @@ import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -40,7 +41,7 @@ public class IndexingOnePageUtil {
             String url = getUrlSite(page);
             siteEntity = new SiteEntity();
             siteEntity.setStatus(SiteStatus.INDEXING);
-            siteEntity.setStatusTime(new Date());
+            siteEntity.setStatusTime(LocalDateTime.now());
             siteEntity.setUrl(url);
             siteEntity.setName(name);
             siteRepository.save(siteEntity);

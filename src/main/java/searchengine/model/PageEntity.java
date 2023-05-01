@@ -27,7 +27,7 @@ public class PageEntity {
     @Column(nullable = false)
     private int code;
 
-    @Column(length = 16777215, columnDefinition = "mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @OneToMany(mappedBy = "pageId", cascade = CascadeType.ALL)

@@ -14,6 +14,7 @@ import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.utils.*;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -98,7 +99,7 @@ public class IndexingServiceImpl implements IndexingService {
     private void updateStatusTime() {
         List<SiteEntity> sites = siteRepository.findByStatus(SiteStatus.INDEXING);
         for (SiteEntity siteEntity : sites) {
-            siteEntity.setStatusTime(new Date());
+            siteEntity.setStatusTime(LocalDateTime.now());
 
             siteRepository.save(siteEntity);
 

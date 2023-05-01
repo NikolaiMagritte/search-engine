@@ -11,6 +11,7 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -33,7 +34,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         String url = site.getUrl();
         String name = site.getName();
         String status = site.getStatus().toString();
-        Date statusTime = site.getStatusTime();
+        LocalDateTime statusTime = site.getStatusTime();
         String error = site.getLastError();
         int pages = pageRepository.countBySiteId(site);
         int lemmas = lemmaRepository.countBySiteId(site);
