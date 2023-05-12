@@ -2,6 +2,9 @@ server:
   port: 8080
 
 spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   datasource:
     username: ${Postgres_USERNAME}
     password: ${Postgres_PASSWORD}
